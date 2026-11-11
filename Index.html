@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BodeApp | ERP Logístico</title>
+<style>
+:root{--primario:#4f46e5;--secundario:#1e293b;--acento:#0ea5e9;--exito:#10b981;--alerta:#f59e0b;--peligro:#ef4444;--fondo:#f8fafc;--tarjeta:#fff;--texto-oscuro:#334155;--texto-claro:#94a3b8}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--fondo);color:var(--texto-oscuro);margin:0}
+.navbar{background:linear-gradient(90deg,var(--secundario) 0%,#0f172a 100%);color:#fff;padding:15px 40px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.navbar .logo{font-size:1.8rem;font-weight:bold;color:var(--acento)}
+.navbar .menu{display:flex;align-items:center}
+.navbar .menu span{margin-left:20px;font-weight:500;cursor:pointer;padding:8px 15px;border-radius:6px;transition:background .3s}
+.navbar .menu span:hover{background-color:rgba(255,255,255,.1)}
+.navbar .menu span.activo{background-color:var(--primario)}
+.container{max-width:1300px;margin:30px auto;padding:0 20px}
+.etiqueta{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:bold;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.etiq-logistica{background:#fef3c7;color:#b45309}.etiq-ventas{background:#d1fae5;color:#047857}.etiq-admin{background:#e0e7ff;color:#4338ca}
+.grid-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:25px}
+.card-full{grid-column:1/-1}
+.card{background:var(--tarjeta);padding:25px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05),0 2px 4px -1px rgba(0,0,0,.03);border-top:4px solid var(--primario);transition:transform .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 15px -3px rgba(0,0,0,.1)}
+.card.logistica{border-top-color:var(--alerta)}.card.ventas{border-top-color:var(--exito)}
+.card h2{margin:0 0 20px 0;font-size:1.25rem;display:flex;align-items:center;gap:8px;color:var(--secundario)}
+label{font-size:.85rem;font-weight:600;color:var(--texto-claro);display:block;margin-top:15px;margin-bottom:5px}
+input,select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:.95rem;box-sizing:border-box;outline:none;transition:border-color .3s}
+input:focus,select:focus{border-color:var(--primario);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+button{width:100%;padding:12px;margin-top:20px;border:none;border-radius:6px;font-size:1rem;font-weight:bold;cursor:pointer;color:#fff;background-color:var(--primario);transition:background-color .3s,transform .1s}
+button:hover{background-color:#4338ca}button:active{transform:scale(.98)}
+.btn-logistica{background-color:var(--alerta)}.btn-logistica:hover{background-color:#d97706}
+.btn-ventas{background-color:var(--exito)}.btn-ventas:hover{background-color:#059669}
+.btn-peligro{background-color:var(--peligro)}.btn-peligro:hover{background-color:#b91c1c}
+.btn-panel{display:flex;flex-wrap:wrap;gap:10px}
+.btn-panel button{margin-top:0;background-color:var(--secundario);flex:1;min-width:150px}
+.btn-panel button:hover{background-color:var(--acento)}
+.table-container{margin-top:20px;overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse;text-align:left}
+th{background-color:#f1f5f9;padding:12px 15px;font-size:.85rem;text-transform:uppercase;color:var(--texto-claro);letter-spacing:.5px}
+td{padding:12px 15px;border-bottom:1px solid #e2e8f0;font-size:.95rem}
+tr:last-child td{border-bottom:none}tr:hover td{background-color:#f8fafc}
+.carrito-box{background:#f8fafc;border:1px dashed #cbd5e1;padding:15px;border-radius:8px;margin-top:15px}
+.carrito-box ul{margin:0;padding-left:20px}.carrito-box li{margin-bottom:5px}
+.quitar{width:auto;margin:0 0 0 8px;padding:0 8px;background:none;color:var(--peligro);font-size:.9rem}
+.quitar:hover{background:none;color:#b91c1c}
+.fila{display:flex;gap:10px}.fila>div{flex:1}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo">📦 BodeApp</div>
+  <div class="menu">
+    <span class="activo" onclick="irA('inicio',this)">Panel de Control</span>
+    <span onclick="irA('logistica',this)">Inventario</span>
+    <span onclick="irA('pos',this)">Facturación</span>
+    <span id="estado" style="font-size:.8rem;opacity:.8;cursor:default"></span>
+  </div>
+</div>
+
+<div class="container" id="inicio">
+  <div class="grid-dashboard">
+
+    <div class="card">
+      <span class="etiqueta etiq-admin">Gestión Comercial</span>
+      <h2>👤 Registrar Cliente</h2>
+      <label>Documento (Cédula):</label>
+      <input type="text" id="cliCedula" placeholder="Ej. 1001">
+      <label>Nombre Completo:</label>
+      <input type="text" id="cliNombre" placeholder="Ej. Carlos Mazo">
+      <button onclick="agregarCliente()">Guardar Cliente</button>
+    </div>
+
+    <div class="card">
+      <span class="etiqueta etiq-admin">Catálogo Maestro</span>
+      <h2>🏷️ Nuevo SKU (Producto)</h2>
+      <div class="fila">
+        <div><label>Código SKU:</label><input type="text" id="prodCodigo" placeholder="Ej. A01"></div>
+        <div><label>Precio Unitario:</label><input type="number" id="prodPrecio" placeholder="$"></div>
+      </div>
+      <label>Descripción del Producto:</label>
+      <input type="text" id="prodNombre" placeholder="Ej. Casco para moto">
+      <button onclick="agregarProducto()">Guardar Producto</button>
+    </div>
+
+    <div class="card logistica" id="logistica">
+      <span class="etiqueta etiq-logistica">Almacén Principal</span>
+      <h2>🚛 Recepción Rionegro (Central)</h2>
+      <label>Código del Producto:</label>
+      <input type="text" id="ingCodigo" list="skus" placeholder="Escanee o digite el SKU">
+      <label>Cantidad Recibida:</label>
+      <input type="number" id="ingCantidad" min="1" placeholder="Unidades a ingresar">
+      <button class="btn-logistica" onclick="ingresarMercancia()">Ingresar a Bodega Central</button>
+    </div>
+
+    <div class="card logistica">
+      <span class="etiqueta etiq-logistica">Red de Distribución</span>
+      <h2>🔄 Traslado de Inventario</h2>
+      <label>Bodega Destino:</label>
+      <select id="trasDestino"></select>
+      <div class="fila">
+        <div><label>SKU a Mover:</label><input type="text" id="trasCodigo" list="skus"></div>
+        <div><label>Cantidad:</label><input type="number" id="trasCantidad" min="1"></div>
+      </div>
+      <button class="btn-logistica" onclick="trasladarMercancia()">Ejecutar Despacho</button>
+    </div>
+
+    <div class="card ventas card-full" id="pos">
+      <span class="etiqueta etiq-ventas">Punto de Venta (POS)</span>
+      <h2>🧾 Emisión de Factura Multibodega</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px">
+        <div>
+          <label>Cédula del Comprador:</label>
+          <input type="text" id="facCedula" list="cedulas" oninput="mostrarCliente()" placeholder="Documento registrado">
+          <div id="infoCliente" style="margin-top:6px;font-size:.9rem;font-weight:600;min-height:1.2em"></div>
+          <label>Sucursal de Despacho (Origen del inventario):</label>
+          <select id="facBodega"></select>
+        </div>
+        <div style="background:var(--fondo);padding:15px;border-radius:8px">
+          <label style="margin-top:0">Agregar Producto al Carrito:</label>
+          <div style="display:flex;gap:10px">
+            <input type="text" id="facCodigoProd" list="skus" placeholder="SKU">
+            <input type="number" id="facCantidad" min="1" placeholder="Cant." style="width:80px">
+            <button class="btn-ventas" onclick="agregarAlCarrito()" style="margin-top:0;width:auto">+</button>
+          </div>
+          <div class="carrito-box">
+            <strong>🛒 Resumen del Carrito:</strong>
+            <ul id="listaCarrito"></ul>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:15px;margin-top:20px">
+        <button class="btn-ventas" onclick="generarFactura()" style="margin-top:0;flex:2">Confirmar y Emitir Factura</button>
+        <button class="btn-peligro" onclick="vaciarCarrito()" style="margin-top:0;flex:1">🗑️ Vaciar Carrito</button>
+      </div>
+    </div>
+
+    <div class="card card-full" style="border-top-color:var(--secundario)">
+      <span class="etiqueta etiq-admin">Inteligencia de Negocio</span>
+      <h2>📊 Monitor de Base de Datos</h2>
+      <div style="background:#f1f5f9;padding:15px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:15px">
+        <label style="margin:0;color:var(--secundario)">Filtrar consultas por:</label>
+        <select id="filtroBodega" style="max-width:300px;margin:0"></select>
+      </div>
+      <div class="btn-panel">
+        <button onclick="consultar('clientes')">👥 Ver Clientes</button>
+        <button onclick="consultar('productos')">🏷️ Ver Productos</button>
+        <button onclick="consultar('inventario')">📦 Stock Logístico</button>
+        <button onclick="consultar('facturas')">🧾 Histórico de Facturas</button>
+        <button onclick="consultar('ventas')">💰 Consolidado de Ventas</button>
+      </div>
+      <div id="pantallaConsultas"></div>
+    </div>
+
+  </div>
+</div>
+<datalist id="skus"></datalist>
+<datalist id="cedulas"></datalist>
+
+<script>
+// Dirección de tu API (la misma que usaba la versión anterior)
+const urlApi = "https://localhost:7001/api/tienda";
+let carrito = [];
+let datos = { clientes: [], productos: [], bodegas: [], inventarios: [], facturas: [] };
+
+const $ = id => document.getElementById(id);
+const dinero = n => "$" + Number(n).toLocaleString("es-CO");
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// Ayudas para buscar datos ya cargados
+const buscarProducto = cod => datos.productos.find(p => p.codigo === cod);
+// Quita el número del inicio del nombre (ej. "1 Rionegro" queda "Rionegro") para que no se repita
+const limpiarNombre = n => String(n ?? "").replace(/^\s*\d+(\s*[-–.:]\s*|\s+)/, "");
+const nombreBodega = id => { const b = datos.bodegas.find(x => x.id === id); return b ? limpiarNombre(b.nombre) : "Bodega " + id; };
+const nombreCliente = ced => { const c = datos.clientes.find(x => x.cedula === ced); return c ? c.nombre + " (" + ced + ")" : ced; };
+const stockEn = (idBodega, cod) => { const i = datos.inventarios.find(x => x.idBodega === idBodega && x.codigoProducto === cod); return i ? i.cantidad : 0; };
+
+// ---------- Leer datos de la API ----------
+async function cargarDatos() {
+  try {
+    const rutas = ["clientes", "productos", "bodegas", "inventarios", "facturas"];
+    const resp = await Promise.all(rutas.map(r => fetch(urlApi + "/" + r).then(x => x.json())));
+    rutas.forEach((r, i) => datos[r] = resp[i]);
+    $("estado").textContent = "● API conectada";
+    llenarListas();
+  } catch (e) {
+    $("estado").textContent = "● Sin conexión con la API";
+  }
+}
+
+function llenarSelect(id, html) {
+  const sel = $(id), previo = sel.value;
+  sel.innerHTML = html;
+  if ([...sel.options].some(o => o.value === previo)) sel.value = previo;
+}
+
+function llenarListas() {
+  const opcion = b => `<option value="${b.id}">${b.id === 1 ? "🏢" : "🏪"} ${b.id} - ${esc(limpiarNombre(b.nombre))}</option>`;
+  llenarSelect("trasDestino", datos.bodegas.filter(b => b.id !== 1).map(opcion).join(""));
+  llenarSelect("facBodega", datos.bodegas.map(opcion).join(""));
+  llenarSelect("filtroBodega", '<option value="0">🌐 Todas las Bodegas (Consolidado)</option>' + datos.bodegas.map(opcion).join(""));
+  $("skus").innerHTML = datos.productos.map(p => `<option value="${esc(p.codigo)}">${esc(p.nombre)}</option>`).join("");
+  $("cedulas").innerHTML = datos.clientes.map(c => `<option value="${esc(c.cedula)}">${esc(c.nombre)}</option>`).join("");
+  mostrarCliente();
+  dibujarCarrito();
+}
+
+// ---------- Enviar datos a la API ----------
+async function enviarPost(ruta, cuerpo) {
+  try {
+    const r = await fetch(urlApi + ruta, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
+    const texto = await r.text();
+    let mensaje = texto, json = null;
+    try { json = JSON.parse(texto); if (json.mensaje) mensaje = json.mensaje; } catch (e) {}
+    return { ok: r.ok, mensaje: mensaje, json: json };
+  } catch (e) {
+    return { ok: false, mensaje: "No se pudo conectar con la API." };
+  }
+}
+const mostrar = r => alert((r.ok ? "✅ Operación Exitosa:\n" : "❌ Error:\n") + r.mensaje);
+
+async function agregarCliente() {
+  const cedula = $("cliCedula").value.trim(), nombre = $("cliNombre").value.trim();
+  if (!cedula || !nombre) return alert("Escriba la cédula y el nombre.");
+  if (datos.clientes.some(c => c.cedula === cedula)) return alert("Ya existe un cliente con esa cédula.");
+  const r = await enviarPost("/agregar-cliente", { cedula: cedula, nombre: nombre });
+  mostrar(r);
+  if (r.ok) { $("cliCedula").value = ""; $("cliNombre").value = ""; await cargarDatos(); }
+}
+
+async function agregarProducto() {
+  const codigo = $("prodCodigo").value.trim(), nombre = $("prodNombre").value.trim(), precio = parseFloat($("prodPrecio").value);
+  if (!codigo || !nombre) return alert("Escriba el código y la descripción.");
+  if (!(precio > 0)) return alert("El precio debe ser mayor que cero.");
+  if (buscarProducto(codigo)) return alert("Ya existe un producto con ese código.");
+  const r = await enviarPost("/agregar-producto", { codigo: codigo, nombre: nombre, precio: precio });
+  mostrar(r);
+  if (r.ok) { ["prodCodigo", "prodNombre", "prodPrecio"].forEach(id => $(id).value = ""); await cargarDatos(); }
+}
+
+async function ingresarMercancia() {
+  const codigo = $("ingCodigo").value.trim(), cantidad = parseInt($("ingCantidad").value);
+  if (!buscarProducto(codigo)) return alert("Ese SKU no existe en el catálogo.");
+  if (!(cantidad >= 1)) return alert("La cantidad debe ser al menos 1.");
+  const r = await enviarPost("/ingresar-mercancia", { codigoProducto: codigo, cantidad: cantidad });
+  mostrar(r);
+  if (r.ok) { $("ingCodigo").value = ""; $("ingCantidad").value = ""; await cargarDatos(); }
+}
+
+async function trasladarMercancia() {
+  const codigo = $("trasCodigo").value.trim(), cantidad = parseInt($("trasCantidad").value), destino = parseInt($("trasDestino").value);
+  if (!buscarProducto(codigo)) return alert("Ese SKU no existe en el catálogo.");
+  if (!(cantidad >= 1)) return alert("La cantidad debe ser al menos 1.");
+  if (!destino) return alert("Elija una bodega destino.");
+  if (cantidad > stockEn(1, codigo)) return alert("No hay suficiente stock en la bodega central. Disponible: " + stockEn(1, codigo));
+  const r = await enviarPost("/trasladar", { codigoProducto: codigo, cantidad: cantidad, idBodegaDestino: destino });
+  mostrar(r);
+  if (r.ok) { $("trasCodigo").value = ""; $("trasCantidad").value = ""; await cargarDatos(); }
+}
+
+// ---------- Carrito y factura ----------
+function agregarAlCarrito() {
+  const cod = $("facCodigoProd").value.trim(), cant = parseInt($("facCantidad").value), idBodega = parseInt($("facBodega").value);
+  if (!buscarProducto(cod)) return alert("Ese SKU no existe en el catálogo.");
+  if (!(cant >= 1)) return alert("Ingrese una cantidad válida.");
+  const linea = carrito.find(i => i.codigo === cod);
+  const yaEnCarrito = linea ? linea.cantidad : 0;
+  if (yaEnCarrito + cant > stockEn(idBodega, cod)) return alert("Stock insuficiente en " + nombreBodega(idBodega) + ". Disponible: " + (stockEn(idBodega, cod) - yaEnCarrito));
+  if (linea) linea.cantidad += cant; else carrito.push({ codigo: cod, cantidad: cant });
+  $("facCodigoProd").value = ""; $("facCantidad").value = "";
+  dibujarCarrito();
+}
+
+function quitar(i) { carrito.splice(i, 1); dibujarCarrito(); }
+
+// Muestra el nombre del cliente cuando la cédula escrita está registrada
+function mostrarCliente() {
+  const ced = $("facCedula").value.trim(), info = $("infoCliente");
+  const c = datos.clientes.find(x => x.cedula === ced);
+  if (!ced) { info.textContent = ""; return; }
+  info.style.color = c ? "var(--exito)" : "var(--peligro)";
+  info.textContent = c ? "✅ " + c.nombre : "⚠️ Cédula no registrada";
+}
+
+function dibujarCarrito() {
+  const ul = $("listaCarrito");
+  if (carrito.length === 0) { ul.innerHTML = '<li style="color:var(--texto-claro);list-style:none">Sin productos agregados...</li>'; return; }
+  let total = 0, html = "";
+  carrito.forEach((item, i) => {
+    const p = buscarProducto(item.codigo), sub = (p ? p.precio : 0) * item.cantidad;
+    total += sub;
+    html += `<li><strong>${esc(p ? p.nombre : item.codigo)}</strong> | Cant: ${item.cantidad} | ${dinero(sub)}<button class="quitar" onclick="quitar(${i})" title="Quitar">✕</button></li>`;
+  });
+  ul.innerHTML = html + `<li style="list-style:none;margin-top:8px"><strong>Total: ${dinero(total)}</strong></li>`;
+}
+
+function vaciarCarrito() {
+  carrito = [];
+  $("facCodigoProd").value = ""; $("facCantidad").value = ""; $("facCedula").value = "";
+  mostrarCliente();
+  dibujarCarrito();
+}
+
+async function generarFactura() {
+  const cedula = $("facCedula").value.trim(), idBodega = parseInt($("facBodega").value);
+  if (carrito.length === 0) return alert("El carrito está vacío");
+  if (!datos.clientes.some(c => c.cedula === cedula)) return alert("Esa cédula no corresponde a un cliente registrado.");
+  for (const item of carrito) {
+    if (item.cantidad > stockEn(idBodega, item.codigo)) return alert("No hay stock suficiente de " + item.codigo + " en " + nombreBodega(idBodega) + ".");
+  }
+  const r = await enviarPost("/generar-factura", { cedulaCliente: cedula, idBodega: idBodega, productos: carrito });
+  if (!r.ok) return alert("ERROR LOGÍSTICO: " + r.mensaje);
+  await cargarDatos();
+  const f = datos.facturas.find(x => x.numero === r.json.numero);
+  alert("¡Venta Procesada!\nFolio: " + r.json.numero + "\nDespacho: " + nombreBodega(idBodega) + (f ? "\nTotal Ingreso: " + dinero(f.totalPagar) : ""));
+  vaciarCarrito();
+}
+
+// ---------- Monitor de base de datos ----------
+async function consultar(tipo) {
+  await cargarDatos();
+  const filtro = parseInt($("filtroBodega").value) || 0;
+  let titulos = [], filas = [];
+
+  if (tipo === "clientes") {
+    titulos = ["Cédula", "Nombre"];
+    filas = datos.clientes.map(c => [c.cedula, c.nombre]);
+  } else if (tipo === "productos") {
+    titulos = ["SKU", "Descripción", "Precio"];
+    filas = datos.productos.map(p => [p.codigo, p.nombre, dinero(p.precio)]);
+  } else if (tipo === "inventario") {
+    titulos = ["Bodega", "SKU", "Producto", "Cantidad"];
+    filas = datos.inventarios.filter(i => filtro === 0 || i.idBodega === filtro)
+      .map(i => [nombreBodega(i.idBodega), i.codigoProducto, (buscarProducto(i.codigoProducto) || {}).nombre, i.cantidad]);
+  } else if (tipo === "facturas") {
+    titulos = ["Folio", "Fecha", "Cliente", "Bodega", "Productos", "Total"];
+    filas = datos.facturas.filter(f => filtro === 0 || f.idBodega === filtro)
+      .map(f => [f.numero, new Date(f.fecha).toLocaleString("es-CO"), nombreCliente(f.cedulaCliente), nombreBodega(f.idBodega),
+                 (f.detalles || []).map(d => d.producto + " x" + d.cantidad).join(", "), dinero(f.totalPagar)]);
+  } else if (tipo === "ventas") {
+    titulos = ["Bodega", "Facturas", "Total vendido"];
+    filas = datos.bodegas.filter(b => filtro === 0 || b.id === filtro).map(b => {
+      const fs = datos.facturas.filter(f => f.idBodega === b.id);
+      let total = 0;
+      fs.forEach(f => total += f.totalPagar);
+      return [limpiarNombre(b.nombre), fs.length, dinero(total)];
+    });
+  }
+
+  const div = $("pantallaConsultas");
+  if (filas.length === 0) { div.innerHTML = "<div style='padding:20px;text-align:center;color:#94a3b8'>Sin registros para esta consulta o bodega.</div>"; return; }
+  let tabla = "<div class='table-container'><table><tr>" + titulos.map(t => `<th>${t}</th>`).join("") + "</tr>";
+  filas.forEach(fila => tabla += "<tr>" + fila.map(v => `<td>${esc(v)}</td>`).join("") + "</tr>");
+  div.innerHTML = tabla + "</table></div>";
+}
+
+// ---------- Menú superior ----------
+function irA(id, el) {
+  document.querySelectorAll(".menu span.activo").forEach(s => s.classList.remove("activo"));
+  el.classList.add("activo");
+  $(id).scrollIntoView({ behavior: "smooth" });
+}
+
+dibujarCarrito();
+cargarDatos();
+</script>
+</body>
+</html>
